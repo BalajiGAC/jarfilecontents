@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	<flow name="connectdatabaseFlow" doc:id="5bfabc97-3c25-4916-8c7e-9b78a31c9527" >
+		<http:listener doc:name="Listener" doc:id="2fda50f2-f981-4f3a-87c9-657cb0200c69" config-ref="HTTP_Listener_config" path="/testsql"/>
+		<db:bulk-insert doc:name="Bulk insert" doc:id="e16892ba-3b8e-420d-a9dd-6f719079b169" config-ref="Database_Config1">
+			<db:bulk-input-parameters ><![CDATA[#[payload map(item)->{
+	name:item.name,
+	employeeid:item.employeeid
+}]]]></db:bulk-input-parameters>
+			<db:sql><![CDATA[INSERT INTO employee (Name, EmployeeID) 
+VALUES 
+    (:name,:employeeid)]]></db:sql>
+		</db:bulk-insert>
+		<db:select doc:name="Query data" doc:id="08eb7312-f295-404c-96bf-7093460817db" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select * from employee where EmployeeID=:id]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+id:attributes.queryParams.EmployeeID  default "EMP006"
+
+}]]]></db:input-parameters>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="b9dd2d17-7752-41f1-b51c-47e88afcc11f" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="connectdatabaseFlow2" doc:id="128df3b2-5393-4138-95fe-1b3d100a4196" >
+		<logger level="INFO" doc:name="Logger" doc:id="8abc592d-b582-4591-8975-bf4d9f1006fd" message="#[vars.watermark]"/>
+	</flow>
+	<flow name="connectdatabaseFlow1" doc:id="fc3083bf-d0e3-4e93-9198-d1fc84b68431" >
+		<scheduler doc:name="Scheduler" doc:id="0413f0ea-b5cc-4df3-955a-248e9126e14b" >
+			<scheduling-strategy >
+				<fixed-frequency frequency="1" timeUnit="MINUTES"/>
+			</scheduling-strategy>
+		</scheduler>
+		<os:retrieve doc:name="Retrieve" doc:id="7b096b61-4916-48dd-99e3-b1389624a8e9" key="lastruntime" objectStore="Object_store" target="watermark">
+			<os:default-value ><![CDATA[ 2026-05-04T14:02:51]]></os:default-value>
+		</os:retrieve>
+		<logger level="INFO" doc:name="Logger" doc:id="1fe9147c-1820-4fd3-b16a-a5f35ef68682" message="#[vars.watermark]"/>
+		<db:select doc:name="Select" doc:id="e0366a29-0358-4aec-b2b7-45643f12d745" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select * from employee where CreatedDate > :lastrundate]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{lastrundate: vars.watermark}]]]></db:input-parameters>
+		</db:select>
+		<os:store doc:name="Store" doc:id="cb788f08-4f30-4eed-b844-2e082cbb9396" objectStore="Object_store" key="lastruntime">
+			<os:value ><![CDATA[#[max(payload  map $.CreatedDate)]]]></os:value>
+		</os:store>
+		<logger level="INFO" doc:name="Logger" doc:id="4a324f4f-bcd6-454e-b7d4-c75bd6041fe1" message="#[vars.payload]"/>
+		<logger level="INFO" doc:name="Logger" doc:id="74e17c36-b3d6-4fc1-8726-a29b16d2bbce" message="#[vars.watermark]"/>
+	</flow>
+</mule>

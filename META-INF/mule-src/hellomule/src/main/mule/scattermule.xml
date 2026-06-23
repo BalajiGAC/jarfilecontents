@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd">
+	<flow name="scattermuleFlow" doc:id="20d2bfbc-68d3-47da-9ff6-7ae2c823cd5f" >
+		<http:listener doc:name="Listener" doc:id="e7cb20b6-d279-4359-a9ab-19c7ce746095" config-ref="HTTP_Listener_config" path="/scatter"/>
+		<set-variable value='#["message from payload"]' doc:name="Set Variable" doc:id="c97042d3-f9ec-4a73-b231-df6630780e80" variableName="message"/>
+		<scatter-gather doc:name="Scatter-Gather" doc:id="53731349-82af-472c-af95-e9f679e7afeb" >
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="fb5964f1-73de-4785-990b-f24e62650aaa" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"Message" : vars.message as String ++  "hello from first transform"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route >
+				<ee:transform doc:name="Transform Message" doc:id="b4cd3ad7-60ab-401f-a78a-a13b877be75d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Message" : vars.message as String ++  "hello from third transform"
+}
+
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</route>
+			<route>
+				<try doc:name="Try" doc:id="384fd40c-63c5-443c-b697-b100a0fcf5b9" >
+					<ee:transform doc:name="Transform Message" doc:id="dc133738-a47b-4a78-a3f4-2773ea4d9197">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/java
+---
+{
+	"Message" : vars.message as String ++  "hello from second transform"
+}
+]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+					<error-handler >
+						<on-error-continue enableNotifications="true" logException="true" doc:name="On Error Continue" doc:id="16f9d044-37b2-4f50-a93d-5bc833588b18" >
+							<logger level="INFO" doc:name="Logger" doc:id="eee16365-c40e-4fcb-84f0-3bc49a862d36" />
+						</on-error-continue>
+					</error-handler>
+				</try>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="cb7fee03-9479-40a5-a870-fd6dfd38fd92" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+</mule>

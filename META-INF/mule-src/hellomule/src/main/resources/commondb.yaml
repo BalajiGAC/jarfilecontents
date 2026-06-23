@@ -1,0 +1,6 @@
+# MySQL database configuration properties
+MySQL:
+  Host: "localhost"
+  Port: "3306"
+  User: "root"
+  Password: "![GPa8ZtQdNdA9LpQo7omytQ==]"

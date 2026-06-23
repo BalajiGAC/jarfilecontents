@@ -1,0 +1,43 @@
+{
+  "configs": [
+    "scattermule.xml",
+    "hellomule.xml",
+    "balajitestmule.xml",
+    "connectdatabase.xml",
+    "testinghtml.xml",
+    "globalxml.xml"
+  ],
+  "secureProperties": [
+    "secure.key"
+  ],
+  "redeploymentEnabled": true,
+  "name": "com.mycompany:hellomule:1.0.0",
+  "minMuleVersion": "4.4.0",
+  "requiredProduct": "MULE_EE",
+  "classLoaderModelLoaderDescriptor": {
+    "id": "mule",
+    "attributes": {
+      "exportedPackages": [],
+      "exportedResources": [
+        "application-types.xml",
+        "balajitestmule.xml",
+        "commondb.yaml",
+        "connectdatabase.xml",
+        "dev-secure-properties.yaml",
+        "dev.properties",
+        "dev.secure.properties",
+        "globalxml.xml",
+        "hellomule.xml",
+        "local.properties",
+        "local.secure.properties",
+        "log4j2.xml",
+        "scattermule.xml",
+        "testinghtml.xml"
+      ]
+    }
+  },
+  "bundleDescriptorLoader": {
+    "id": "mule",
+    "attributes": {}
+  }
+}

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:os="http://www.mulesoft.org/schema/mule/os" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:file="http://www.mulesoft.org/schema/mule/file"
+	xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:batch="http://www.mulesoft.org/schema/mule/batch" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/batch http://www.mulesoft.org/schema/mule/batch/current/mule-batch.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd
+http://www.mulesoft.org/schema/mule/file http://www.mulesoft.org/schema/mule/file/current/mule-file.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/os http://www.mulesoft.org/schema/mule/os/current/mule-os.xsd">
+	
+	<http:request-config name="HTTP_Request_configuration" doc:name="HTTP Request configuration" doc:id="4c947ae0-59c9-457e-bfee-36ef6f3f3d4e" />
+	<http:request-config name="HTTP_Request_configuration1" doc:name="HTTP Request configuration" doc:id="117d79ad-e651-46b8-aeb3-7cccd42cea1c" >
+		<http:request-connection usePersistentConnections="false" />
+	</http:request-config>
+	<file:config name="File_Config" doc:name="File Config" doc:id="aa88b19b-e0b8-4a42-a539-437a86025041" />
+	<os:object-store name="Object_store" doc:name="Object store" doc:id="7879d5ed-c5e1-4345-ab35-d2299d3e60c0" />
+	<file:config name="File_Config_watermark" doc:name="File Config" doc:id="7d2143e0-a893-406d-8227-b6b5d5eba6d8" >
+		<file:connection workingDir="C:\Users\BalajiChinnapapammag\Documents\watermarktest" />
+	</file:config>
+	<flow name="hellomuleFlow1" doc:id="c9be9d69-f58b-4e7b-a341-50069eb3e33b" >
+		<http:listener doc:name="Listener" doc:id="e3bbd31f-aeff-409d-a32c-42a66e744389" config-ref="HTTP_Listener_config" path="/testingsql"/>
+		<db:select doc:name="Select" doc:id="79659480-8e6b-4283-9cf9-b734013ed348" config-ref="Database_Config1">
+			<db:sql ><![CDATA[select * from employee]]></db:sql>
+		</db:select>
+		<ee:transform doc:name="Transform Message" doc:id="cfa138b0-ce39-4b2d-8279-44963debed09" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload map ((item, index) -> {
+ firstname:(item.Name splitBy " ")[0],
+ lastname:(item.Name splitBy " ")[1],
+ employeeid:item.EmployeeID,
+ 
+})
+
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+	</flow>
+	<flow name="hellomuleFlow" doc:id="3f9ca443-5e38-46ae-b45a-f5ec1900a5ff" >
+		<http:listener doc:name="Listener" doc:id="32830a04-7b13-4c04-bdfc-6a1e575b45d9" config-ref="HTTP_Listener_config" path="/hellomule" allowedMethods="GET"/>
+		<set-payload value='#[output application/json&#10;---&#10;&#10;"Hello mule"]' doc:name="Set Payload" doc:id="7b35bdd6-418d-454f-abc2-74edaa81ef7d" mimeType="application/json"/>
+		<logger level="INFO" doc:name="Logger" doc:id="e000f86e-f0ce-4f6d-9154-b6aadd5db606" message='#[output application/java&#10;---&#10;"Username: " ++ Mule::p("secure::example.username")&#10;++ " - " ++&#10;"Password: " ++ Mule::p("secure::example.password")]'/>
+	</flow>
+	<flow name="hellomuleFlow2" doc:id="0c2d1d51-4793-4c8d-9205-d3b37054391a" >
+		<file:listener doc:name="On New or Updated File" doc:id="71541351-ce21-4138-8ad2-faf870371e34" config-ref="File_Config_watermark" watermarkMode="CREATED_TIMESTAMP" directory="./inputfolder" moveToDirectory="./zoom" overwrite="true">
+			<scheduling-strategy >
+				<fixed-frequency frequency="60" timeUnit="SECONDS"/>
+			</scheduling-strategy>
+		</file:listener>
+		<logger level="INFO" doc:name="Logger" doc:id="1d970b75-af93-472c-9520-916f86cb51ef" message="file moved successfully"/>
+	</flow>
+	
+</mule>

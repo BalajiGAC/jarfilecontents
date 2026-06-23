@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:secure-properties="http://www.mulesoft.org/schema/mule/secure-properties"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/secure-properties http://www.mulesoft.org/schema/mule/secure-properties/current/mule-secure-properties.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/salesforce http://www.mulesoft.org/schema/mule/salesforce/current/mule-salesforce.xsd">
+	<http:listener-config name="HTTP_Listener_config" doc:name="HTTP Listener config" doc:id="5e398ffd-f4a1-445f-8606-81a837486c0d" >
+		<http:listener-connection host="${http.listener.host}" port="${http.listener.port}" />
+	</http:listener-config>
+	<configuration-properties doc:name="Configuration properties" doc:id="640fd6d3-496d-4804-896b-b91f42c9badc" file="${env}.properties" />
+	<global-property doc:name="Global Property" doc:id="e56e062e-3b33-4978-a452-abfe51b07d12" name="env" value="local" />
+	<configuration-properties doc:name="Configuration properties" doc:id="88b86f15-cf94-436c-a56e-45539d844600" file="commondb.yaml" />
+	<db:config name="Database_Config1" doc:name="Database Config" doc:id="5d6aee94-d966-4bc9-91c5-8fe06d694b3d" >
+		<db:my-sql-connection host="${secure::MySQL.Host}" port="${secure::MySQL.Port}" user="${secure::MySQL.User}" password="${secure::MySQL.Password}" database="mysql"/>
+	</db:config>
+	<secure-properties:config name="Secure_Properties_Config" doc:name="Secure Properties Config" doc:id="6b0c2ed9-8f1f-4adb-baa8-3f1e9b7a59bd" file="commondb.yaml" key="myDatabasePassword" >
+		<secure-properties:encrypt algorithm="Blowfish" />
+	</secure-properties:config>
+</mule>
